@@ -23,8 +23,8 @@ def get_urls(filename):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Download a list of youtube videos')
-    parser.add_argument('--urls', type=str, default='data/obama_urls.txt')
-    parser.add_argument('--output-dir', type=str, default='data/obama_videos')
+    parser.add_argument('--urls', type=str, default='data/urls.txt')
+    parser.add_argument('--output-dir', type=str, default='data/obama/videos')
 
     # VIDEOS
     parser.add_argument('--format', type=str, default='bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best')
