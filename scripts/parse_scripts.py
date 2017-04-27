@@ -25,8 +25,6 @@ def parse(directory):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Download a list of youtube videos')
-    parser.add_argument('-dir', type=str, default='data/obama_videos')
+    parser.add_argument('--dir', type=str, default='data/obama_videos')
     args = parser.parse_args()
     parse(args.dir)
-
-
