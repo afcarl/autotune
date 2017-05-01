@@ -1,5 +1,7 @@
 folder="$1"
 mkdir -p "data/${folder}/audios"
+mkdir -p "data/${folder}/gen"
+mkdir -p "data/${folder}/tmp"
 mkdir -p "data/${folder}/videos"
 mkdir -p "data/${folder}/subtitles"
 mkdir -p "data/${folder}/alignment"
