@@ -13,6 +13,7 @@ def parse_lyrics(f):
     return output
 
 def find(word, folder, verbose=False):
+    output = None
     for file in os.listdir(os.path.join(folder, 'alignment')):
         if '.txt' not in file:
             continue
@@ -24,11 +25,12 @@ def find(word, folder, verbose=False):
         if word not in alignment['transcript']:
             continue
         for w in alignment['words']:
-            if w['word'].lower() == word and w['case'] == 'success':
-                return {'filename': file.replace('.txt', ''),
-                        'starttime': w['start'],
-                        'duration': w['end'] - w['start']}
-    return None
+            if w['word'].lower() == word and w['case'] == 'success' \
+                    and (output is None or output['duration'] < w['end'] - w['start']):
+                output = {'filename': file.replace('.txt', ''),
+                          'starttime': w['start'],
+                          'duration': w['end'] - w['start']}
+    return output
 
 def main(args):
     words = parse_lyrics(args.lyrics)

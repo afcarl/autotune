@@ -5,18 +5,25 @@ import os
 
 
 def main(args):
+    subprocess.call('rm ' + os.path.join(args.tmp, 'filelist.txt'), shell=True)
+    subprocess.call('rm ' + os.path.join(args.tmp, '*.mp4'), shell=True)
     script = json.load(open(args.script))
-    filelist = open(os.path.join(args.tmp, 'filelist.txt'), 'w')
+    filename = os.path.join(args.tmp, 'filelist.txt')
+    filelist = open(filename, 'w')
     for index, elem in enumerate(script):
         name = elem['filename']
         start = str(elem['starttime'])
         duration = str(elem['duration'])
         outfile = os.path.join(args.tmp, str(index) + ".mp4")
         cut = "ffmpeg -ss " + start + " -i " + os.path.join(args.data, 'videos', name) + ".mp4 -t " + duration + " " + outfile
+        print "="*89
+        print cut
         subprocess.call(cut, shell=True)
-        filelist.write(outfile + '\n')
+        filelist.write('file \'' + str(index) + '.mp4\'\n')
     filelist.close()
-    paste = "ffmpeg -f concat -i " + filelist + " -c copy " + args.output
+    paste = "ffmpeg -f concat -i " + filename + " -c copy " + args.output
+    print "="*89
+    print paste
     subprocess.call(paste, shell=True)
     print "| Done."
 
