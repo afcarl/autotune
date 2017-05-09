@@ -1,16 +1,7 @@
 import argparse
 import json
-import re
 import os
-
-def parse_lyrics(f):
-    regex = re.compile('[^a-zA-Z\']')
-    output = []
-    for line in open(f):
-        words = line.lower().strip().split(' ')
-        words = [regex.sub('', word) for word in words]
-        output.extend(words)
-    return output
+import utils
 
 def find(word, folder, verbose=False):
     output = None
@@ -33,7 +24,7 @@ def find(word, folder, verbose=False):
     return output
 
 def main(args):
-    words = parse_lyrics(args.lyrics)
+    words = utils.parse_lyrics(args.lyrics)
     output = []
     memory = {}
     for word in words:
@@ -51,7 +42,7 @@ def main(args):
     f.close()
 
 if __name__=='__main__':
-    parser = argparse.ArgumentParser(description='Download a list of youtube videos')
+    parser = argparse.ArgumentParser(description='Generate a naive greedy order of videos speaking the lyrics')
     parser.add_argument('--lyrics', type=str, default='data/songs/lyrics/call_me_maybe.txt')
     parser.add_argument('--data', type=str, default='data/obama')
     parser.add_argument('--output', type=str, default='data/obama/gen/call_me_maybe.txt')
