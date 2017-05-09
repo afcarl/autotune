@@ -19,7 +19,7 @@ def parse_lyric_phonemes(f, phonetics):
         words = line.lower().strip().split(' ')
         for word in words:
             word = regex.sub('', word)
-            output.extend(phonetics.get_phoneme(word))
+            output.extend(phonetics.get_phonemes(word))
     return output
 
 
