@@ -15,7 +15,7 @@ def main(args):
         start = str(elem['starttime'])
         duration = str(elem['duration'])
         outfile = os.path.join(args.tmp, str(index) + ".mp4")
-        cut = "ffmpeg -ss " + start + " -i " + os.path.join(args.data, 'videos', name) + ".mp4 -t " + duration + " " + outfile
+        cut = "ffmpeg -ss " + start + " -i " + os.path.join(args.videos, name) + ".mp4 -t " + duration + " " + outfile
         print "="*89
         print cut
         subprocess.call(cut, shell=True)
@@ -30,7 +30,7 @@ def main(args):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Download a list of youtube videos')
-    parser.add_argument('--data', type=str, default='data/obama')
+    parser.add_argument('--videos', type=str, default='data/obama/lowres_videos')
     parser.add_argument('--script', type=str, default='data/obama/gen/call_me_maybe.txt')
     parser.add_argument('--tmp', type=str, default='data/obama/tmp')
     parser.add_argument('--output', type=str, default='data/obama/gen/call_me_maybe.mp4')
