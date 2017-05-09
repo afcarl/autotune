@@ -24,7 +24,7 @@ def find(word, folder, verbose=False):
     return output
 
 def main(args):
-    words = utils.parse_lyrics(args.lyrics)
+    words = utils.parse_lyric_words(args.lyrics)
     output = []
     memory = {}
     for word in words:
