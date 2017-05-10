@@ -43,7 +43,7 @@ class Viterbi:
     def binary(self, prev, node):
         if prev.filename != node.filename:
             return self.transition_penalty
-        if prev.start + prev.duration - node.start <= 0.01:
+        if abs(prev.start + prev.duration - node.start) <= 0.01:
             return 0
         return self.transition_penalty
 
@@ -56,7 +56,7 @@ class Viterbi:
                 alignment = json.load(open(os.path.join(folder, 'alignment', file)))
             except:
                 continue
-            if word not in alignment['transcript']:
+            if word not in alignment['transcript'].lower():
                 continue
             for w in alignment['words']:
                 unary = self.unary(word, w)
@@ -104,15 +104,23 @@ class Viterbi:
             elif last.value < node.value:
                 last = node
         sequence = []
+        duration_offset = 0
         while last is not None:
-          sequence.append({'filename': last.filename.replace('.txt', ''),
-                          'starttime': last.start,
-                          'duration': last.duration})
-          last = last.prev
+            if last.prev is not None and self.binary(last.prev, last) != self.transition_penalty:
+                duration_offset += last.duration
+            else:
+                sequence.append({'filename': last.filename.replace('.txt', ''),
+                                 'starttime': last.start,
+                                 'duration': last.duration+duration_offset})
+                duration_offset = 0
+            last = last.prev
+        sequence = sequence[::-1]
+        print "Original number of clips: %d" % len(self.timesteps)
+        print "Viterbi  number of clips: %d" % len(sequence)
 
         # Save the output
         f = open(self.output, 'w')
-        f.write(json.dumps(sequence[::-1]))
+        f.write(json.dumps(sequence))
         f.close()
 
 
