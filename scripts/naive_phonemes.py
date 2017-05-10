@@ -22,7 +22,7 @@ def find(phoneme, folder, verbose=False):
                     and (output is None or output['duration'] < phone['duration']):
                     output = {'filename': file.replace('.txt', ''),
                               'starttime': start,
-                              'duration': phone['duration'] - start}
+                              'duration': phone['duration']}
                 start += phone['duration']
     return output
 
