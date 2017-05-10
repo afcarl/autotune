@@ -11,9 +11,8 @@ def find(word, folder, verbose=False):
         try:
             alignment = json.load(open(os.path.join(folder, 'alignment', file)))
         except:
-            if verbose:
-                print "| Could not parse alignment in file: %s" % file
-        if word not in alignment['transcript']:
+            continue
+        if word not in alignment['transcript'].lower():
             continue
         for w in alignment['words']:
             if w['word'].lower() == word and w['case'] == 'success' \

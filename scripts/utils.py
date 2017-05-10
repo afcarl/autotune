@@ -16,7 +16,7 @@ def parse_lyric_phonemes(f, phonetics):
     regex = re.compile('[^a-zA-Z\']')
     output = []
     for line in open(f):
-        words = line.lower().strip().split(' ')
+        words = line.replace('-', ' ').lower().strip().split(' ')
         for word in words:
             word = regex.sub('', word)
             output.extend(phonetics.get_phonemes(word))
@@ -27,7 +27,7 @@ def parse_lyric_words(f):
     regex = re.compile('[^a-zA-Z\']')
     output = []
     for line in open(f):
-        words = line.lower().strip().split(' ')
+        words = line.replace('-', ' ').lower().strip().split(' ')
         for word in words:
             word = regex.sub('', word)
             output.append(word)
