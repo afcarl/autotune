@@ -118,6 +118,6 @@ def collect_phones(folder, verbose=False):
                 prevstart = start
                 start += phone_obj['duration']
                 if phone not in phonemap:
-                    phonemap[phone] = {}
+                    phonemap[phone] = []
                 phonemap[phone].append(elem)
     return phonemap
