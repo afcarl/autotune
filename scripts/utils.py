@@ -4,12 +4,13 @@ import os
 
 
 class Node:
-    def __init__(self, name, unary, filename, start, duration):
+    def __init__(self, name, unary, filename, start, duration, prevstart):
         self.name = name
         self.unary = unary
         self.filename = filename
         self.start = start
         self.duration = duration
+        self.prevstart = prevstart
         self.prev = None
 
     def setPrev(self, node):
@@ -78,14 +79,14 @@ def collect_words(folder, verbose=False):
         except:
             print "Could not parse %s" % file
             continue
-        prev = None
+        prevstart = None
         for w in alignment['words']:
             if w['case'] == 'success':
                 elem = {'filename': file.replace('.txt', ''),
                         'starttime': w['start'],
                         'duration': w['end'] - w['start'],
-                        'prev': prev}
-                prev = w['start']
+                        'prevstart': prevstart}
+                prevstart = w['start']
                 word = w['word'].lower().strip()
                 if word not in wordmap:
                     wordmap[word] = []
@@ -103,7 +104,7 @@ def collect_phones(folder, verbose=False):
         except:
             print "Could not parse %s" % file
             continue
-        prev = None
+        prevstart = None
         for w in alignment['words']:
             if w['case'] != 'success':
                 continue
@@ -113,8 +114,8 @@ def collect_phones(folder, verbose=False):
                 elem = {'filename': file.replace('.txt', ''),
                         'starttime': start,
                         'duration': phone_obj['duration'],
-                        'prev': prev}
-                prev = start
+                        'prevstart': prevstart}
+                prevstart = start
                 start += phone_obj['duration']
                 if phone not in phonemap:
                     phonemap[phone] = {}

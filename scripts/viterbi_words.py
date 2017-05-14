@@ -20,7 +20,7 @@ class Viterbi:
     def binary(self, prev, node):
         if prev.filename != node.filename:
             return self.transition_penalty
-        if prev.start == node.prev:
+        if prev.start == node.prevstart:
             return 0
         return self.transition_penalty
 
@@ -32,7 +32,7 @@ class Viterbi:
             if word not in self.memory:
                 print "| Cound not find %s" % word
                 continue
-            elems = [Node(word, self.unary(word, elem), elem['filename'], elem['starttime'], elem['duration']) for elem in self.memory[word]]
+            elems = [Node(word, self.unary(word, elem), elem['filename'], elem['starttime'], elem['duration'], elem['prevstart']) for elem in self.memory[word]]
             self.timesteps.append(elems)
 
         # calculate best path
