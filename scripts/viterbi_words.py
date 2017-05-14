@@ -1,30 +1,6 @@
 import argparse
 import json
-import utils
-import os
-
-
-class Node:
-    def __init__(self, name, unary, filename, start, duration):
-        self.name = name
-        self.unary = unary
-        self.filename = filename
-        self.start = start
-        self.duration = duration
-
-        self.prev = None
-        self.value = None
-
-    def setNext(self, node):
-        self.next = node
-
-    def setPrev(self, node):
-        self.prev = node
-
-    def copy(self):
-        return Node(self.name, self.unary,
-                    self.filename, self.start,
-                    self.duration)
+from utils import parse_lyric_words, Node
 
 
 class Viterbi:
@@ -34,7 +10,8 @@ class Viterbi:
         self.verbose = args.verbose
         self.transition_penalty = args.transition_penalty
 
-        self.words = utils.parse_lyric_words(args.lyrics)
+        self.words = parse_lyric_words(args.lyrics)
+        self.memory = json.load(open(args.wordmap))
         self.timesteps = []
 
     def unary(self, word, w_obj):
@@ -43,43 +20,19 @@ class Viterbi:
     def binary(self, prev, node):
         if prev.filename != node.filename:
             return self.transition_penalty
-        if abs(prev.start + prev.duration - node.start) <= 0.01:
+        if prev.start == node.prev:
             return 0
         return self.transition_penalty
 
-    def find(self, word, folder, verbose=False):
-        nodes = []
-        for file in os.listdir(os.path.join(folder, 'alignment')):
-            if '.txt' not in file:
-                continue
-            try:
-                alignment = json.load(open(os.path.join(folder, 'alignment', file)))
-            except:
-                continue
-            if word not in alignment['transcript'].lower():
-                continue
-            for w in alignment['words']:
-                unary = self.unary(word, w)
-                if w['word'].lower() == word and w['case'] == 'success':
-                    nodes.append(Node(word, unary, file.replace('.txt', ''),
-                              w['start'], w['end'] - w['start']))
-        return nodes
-
-
     def run(self):
         # Calculate the unary values
-        memory = {}
         for progress, word in enumerate(self.words):
             if self.verbose and progress % 100 == 0:
                 print "| Calculating unary values: %d / %d" % (progress, len(self.words))
-            if word in memory:
-                elems = [elem.copy() for elem in memory[word]]
-            else:
-                elems = self.find(word, self.data, verbose=self.verbose)
-                memory[word] = elems
-            if len(elems) is 0:
+            if word not in self.memory:
                 print "| Cound not find %s" % word
                 continue
+            elems = [Node(word, self.unary(word, elem), elem['filename'], elem['starttime'], elem['duration']) for elem in self.memory[word]]
             self.timesteps.append(elems)
 
         # calculate best path
@@ -128,6 +81,7 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Generate the best sequence of videos')
     parser.add_argument('--lyrics', type=str, default='data/songs/lyrics/call_me_maybe.txt')
     parser.add_argument('--data', type=str, default='data/obama')
+    parser.add_argument('--wordmap', type=str, default='data/obama/gen/wordmap.json')
     parser.add_argument('--output', type=str, default='data/obama/gen/call_me_maybe.txt')
     parser.add_argument('--verbose', action='store_true', default=False)
     parser.add_argument('--transition-penalty', type=int, default=-100)

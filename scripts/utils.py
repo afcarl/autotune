@@ -3,6 +3,24 @@ import re
 import os
 
 
+class Node:
+    def __init__(self, name, unary, filename, start, duration):
+        self.name = name
+        self.unary = unary
+        self.filename = filename
+        self.start = start
+        self.duration = duration
+        self.prev = None
+
+    def setPrev(self, node):
+        self.prev = node
+
+    def copy(self):
+        return Node(self.name, self.unary,
+                    self.filename, self.start,
+                    self.duration)
+
+
 class Phonetics:
     def __init__(self, word2phone_file):
         """
@@ -60,12 +78,14 @@ def collect_words(folder, verbose=False):
         except:
             print "Could not parse %s" % file
             continue
+        prev = None
         for w in alignment['words']:
             if w['case'] == 'success':
                 elem = {'filename': file.replace('.txt', ''),
                         'starttime': w['start'],
                         'duration': w['end'] - w['start'],
-                        'next': None}
+                        'prev': prev}
+                prev = w['start']
                 word = w['word'].lower().strip()
                 if word not in wordmap:
                     wordmap[word] = []
@@ -83,6 +103,7 @@ def collect_phones(folder, verbose=False):
         except:
             print "Could not parse %s" % file
             continue
+        prev = None
         for w in alignment['words']:
             if w['case'] != 'success':
                 continue
@@ -92,7 +113,8 @@ def collect_phones(folder, verbose=False):
                 elem = {'filename': file.replace('.txt', ''),
                         'starttime': start,
                         'duration': phone_obj['duration'],
-                        'next': None}
+                        'prev': prev}
+                prev = start
                 start += phone_obj['duration']
                 if phone not in phonemap:
                     phonemap[phone] = {}
