@@ -50,6 +50,18 @@ class Phonetics:
                 output.extend(self.get_phones(word))
         return output
 
+    def parse_lyric_compound_phones(self, f, ngram):
+        """
+        f - raw textfile with words that need to be parsed
+        """
+        phones = self.parse_lyric_phones(f)
+        output = []
+        i = 0
+        while i < len(phones):
+            output.append('_'.join(phones[i:i+ngram]))
+            i += ngram
+        return output
+
 
 def parse_lyric_words(f):
     """
@@ -94,9 +106,10 @@ def collect_words(folder, verbose=False):
     return wordmap
 
 
-def collect_phones(folder, verbose=False):
+def collect_phones(folder, N, verbose=False):
     phonemap = {}
     for file in os.listdir(os.path.join(folder, 'alignment')):
+        # Basic parsing
         if '.txt' not in file:
             continue
         try:
@@ -104,20 +117,34 @@ def collect_phones(folder, verbose=False):
         except:
             print "Could not parse %s" % file
             continue
+
+        # State for file
+        phonelist = []
+        startlist = []
+        durationlist = []
         prevstart = None
+
+        # Iterate over data
         for w in alignment['words']:
             if w['case'] != 'success':
                 continue
             start = w['start']
             for phone_obj in w['phones']:
                 phone = phone_obj['phone'][0:phone_obj['phone'].index('_')]
-                elem = {'filename': file.replace('.txt', ''),
-                        'starttime': start,
-                        'duration': phone_obj['duration'],
-                        'prevstart': prevstart}
-                prevstart = start
+                phonelist.append(phone)
+                startlist.append(start)
+                durationlist.append(phone_obj['duration'])
+                if len(phonelist) >= N:
+                    compound_phone = '_'.join(phonelist[-N:])
+                    if len(startlist) >= 2*N:
+                        prevstart = startlist[-2*N]
+                    elem = {'filename': file.replace('.txt', ''),
+                            'starttime': startlist[-N],
+                            'duration': sum(durationlist[-N:]),
+                            'prevstart': prevstart}
+                    if compound_phone not in phonemap:
+                        phonemap[compound_phone] = []
+                    phonemap[compound_phone].append(elem)
+                    phonelist = []
                 start += phone_obj['duration']
-                if phone not in phonemap:
-                    phonemap[phone] = []
-                phonemap[phone].append(elem)
     return phonemap
