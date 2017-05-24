@@ -6,9 +6,8 @@ import os
 
 
 class Viterbi:
-    def __init__(self, output, data, phones, memory, transition_penalty=0, verbose=False):
+    def __init__(self, output, phones, memory, transition_penalty=0, verbose=False):
         self.output = output
-        self.data = data
         self.verbose = verbose
         self.phones = phones
         self.transition_penalty = transition_penalty
@@ -83,7 +82,6 @@ class Viterbi:
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Generate the best sequence of videos')
     parser.add_argument('--lyrics', type=str, default='data/songs/lyrics/call_me_maybe.txt')
-    parser.add_argument('--data', type=str, default='data/obama')
     parser.add_argument('--phonemap-dir', type=str, default='data/obama/gen')
     parser.add_argument('--output', type=str, default='data/obama/gen/call_me_maybe.txt')
     parser.add_argument('--verbose', action='store_true', default=False)
@@ -96,6 +94,6 @@ if __name__=='__main__':
     lines = read_file(args.lyrics)
     phones = phonetics.parse_compound_phones(lines, args.ngram)
     memory = json.load(open(os.path.join(args.phonemap_dir, 'phonemap_' + str(args.ngram) + '.json')))
-    viterbi = Viterbi(args.output, args.data, phones, memory,
+    viterbi = Viterbi(args.output, phones, memory,
             transition_penalty=args.transition_penalty, verbose=args.verbose)
     viterbi.run()
