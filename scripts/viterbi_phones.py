@@ -1,4 +1,4 @@
-from utils import Phonetics, Node
+from utils import Phonetics, Node, read_file
 
 import argparse
 import json
@@ -6,17 +6,14 @@ import os
 
 
 class Viterbi:
-    def __init__(self, args):
-        self.output = args.output
-        self.data = args.data
-        self.verbose = args.verbose
-        self.transition_penalty = args.transition_penalty
+    def __init__(self, output, data, phones, memory, transition_penalty=0, verbose=False):
+        self.output = output
+        self.data = data
+        self.verbose = verbose
+        self.phones = phones
+        self.transition_penalty = transition_penalty
 
-        phonetics = Phonetics(args.word2phone)
-        if args.verbose:
-            print "| Parsing lyrics"
-        self.phones = phonetics.parse_lyric_compound_phones(args.lyrics, args.ngram)
-        self.memory = json.load(open(os.path.join(args.phonemap_dir, 'phonemap_' + str(args.ngram) + '.json')))
+        self.memory = memory
         self.timesteps = []
 
     def unary(self, phone, p_obj):
@@ -94,5 +91,11 @@ if __name__=='__main__':
     parser.add_argument('--ngram', type=int, default=5)
     parser.add_argument('--word2phone', type=str, default='data/word2phones.json')
     args = parser.parse_args()
-    viterbi = Viterbi(args)
+
+    phonetics = Phonetics(args.word2phone)
+    lines = read_file(args.lyrics)
+    phones = phonetics.parse_compound_phones(lines, args.ngram)
+    memory = json.load(open(os.path.join(args.phonemap_dir, 'phonemap_' + str(args.ngram) + '.json')))
+    viterbi = Viterbi(args.output, args.data, phones, memory,
+            transition_penalty=args.transition_penalty, verbose=args.verbose)
     viterbi.run()

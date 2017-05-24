@@ -21,6 +21,25 @@ class Node:
                     self.filename, self.start,
                     self.duration)
 
+def read_file(f):
+    """
+    f - raw textfile with words that need to be parsed
+    """
+    return open(f).readlines()
+
+def parse_words(script):
+    """
+    script - list of strings in a script
+    """
+    regex = re.compile('[^a-zA-Z\']')
+    output = []
+    for line in script:
+        words = line.replace('-', ' ').lower().strip().split(' ')
+        for word in words:
+            word = regex.sub('', word)
+            output.append(word)
+    return output
+
 
 class Phonetics:
     def __init__(self, word2phone_file):
@@ -37,44 +56,27 @@ class Phonetics:
             return self.word2phone[word]
         return []
 
-    def parse_lyric_phones(self, f):
+    def parse_phones(self, script):
         """
-        f - raw textfile with words that need to be parsed
+        script - list of strings in a script
         """
-        regex = re.compile('[^a-zA-Z\']')
+        words = parse_words(script)
         output = []
-        for line in open(f):
-            words = line.replace('-', ' ').lower().strip().split(' ')
-            for word in words:
-                word = regex.sub('', word)
-                output.extend(self.get_phones(word))
+        for word in words:
+            output.extend(self.get_phones(word))
         return output
 
-    def parse_lyric_compound_phones(self, f, ngram):
+    def parse_compound_phones(self, script, ngram):
         """
-        f - raw textfile with words that need to be parsed
+        script - list of strings in a script
         """
-        phones = self.parse_lyric_phones(f)
+        phones = self.parse_phones(script)
         output = []
         i = 0
         while i < len(phones):
             output.append('_'.join(phones[i:i+ngram]))
             i += ngram
         return output
-
-
-def parse_lyric_words(f):
-    """
-    f - raw textfile with words that need to be parsed
-    """
-    regex = re.compile('[^a-zA-Z\']')
-    output = []
-    for line in open(f):
-        words = line.replace('-', ' ').lower().strip().split(' ')
-        for word in words:
-            word = regex.sub('', word)
-            output.append(word)
-    return output
 
 
 def collect_words(folder, verbose=False):

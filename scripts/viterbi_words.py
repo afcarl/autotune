@@ -1,17 +1,16 @@
 import argparse
 import json
-from utils import parse_lyric_words, Node
+from utils import read_file, parse_words, Node
 
 
 class Viterbi:
-    def __init__(self, args):
-        self.output = args.output
-        self.data = args.data
-        self.verbose = args.verbose
-        self.transition_penalty = args.transition_penalty
+    def __init__(self, output, words, memory, transition_penalty=0, verbose=False):
+        self.output = output
+        self.verbose = verbose
+        self.transition_penalty = transition_penalty
 
-        self.words = parse_lyric_words(args.lyrics)
-        self.memory = json.load(open(args.wordmap))
+        self.words = words
+        self.memory = memory
         self.timesteps = []
 
     def unary(self, word, w_obj):
@@ -80,11 +79,14 @@ class Viterbi:
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Generate the best sequence of videos')
     parser.add_argument('--lyrics', type=str, default='data/songs/lyrics/call_me_maybe.txt')
-    parser.add_argument('--data', type=str, default='data/obama')
     parser.add_argument('--wordmap', type=str, default='data/obama/gen/wordmap.json')
     parser.add_argument('--output', type=str, default='data/obama/gen/call_me_maybe.txt')
     parser.add_argument('--verbose', action='store_true', default=False)
     parser.add_argument('--transition-penalty', type=int, default=-100)
     args = parser.parse_args()
-    viterbi = Viterbi(args)
+
+    words = parse_words(read_file(args.lyrics))
+    memory = json.load(open(args.wordmap))
+    viterbi = Viterbi(args.output, words, memory,
+            transition_penalty=args.transition_penalty, verbose=args.verbose)
     viterbi.run()

@@ -9,17 +9,10 @@ def find(choices):
             curr = choice
     return curr
 
-def main(args):
-    phonetics = utils.Phonetics(args.word2phones)
-    if args.verbose:
-        print "| Parsing lyrics"
-    phones = phonetics.parse_lyric_phones(args.lyrics)
-    if args.verbose:
-        print "| Done parsing lyrics. %d phones found." % len(phones)
-    output = []
-    memory = json.load(open(args.phonemap))
+def main(output, phones, memory, verbose=False):
+    clips = []
     for progress, phone in enumerate(phones):
-        if args.verbose and progress % 100 == 0:
+        if verbose and progress % 100 == 0:
             print "Progress: %d / %d" % (progress, len(phones))
         if phone in memory:
             choices = memory[phone]
@@ -27,9 +20,9 @@ def main(args):
         else:
             print "| Cound not find %s" % phone
             continue
-        output.append(choice)
-    f = open(args.output, 'w')
-    f.write(json.dumps(output))
+        clips.append(choice)
+    f = open(output, 'w')
+    f.write(json.dumps(clips))
     f.close()
 
 if __name__=='__main__':
@@ -41,6 +34,14 @@ if __name__=='__main__':
     parser.add_argument('--output', type=str, default='data/obama/gen/call_me_maybe.txt')
     parser.add_argument('--verbose', action='store_true', default=False)
     args = parser.parse_args()
-    main(args)
+
+    phonetics = utils.Phonetics(args.word2phones)
+    if args.verbose:
+        print "| Parsing lyrics"
+    phones = phonetics.parse_phones(utils.read_file(args.lyrics))
+    if args.verbose:
+        print "| Done parsing lyrics. %d phones found." % len(phones)
+    memory = json.load(open(args.phonemap))
+    main(args.output, phones, memory, verbose=args.verbose)
 
 

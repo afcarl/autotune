@@ -9,10 +9,8 @@ def find(choices):
             curr = choice
     return curr
 
-def main(args):
-    words = utils.parse_lyric_words(args.lyrics)
-    output = []
-    memory = json.load(open(args.wordmap))
+def main(output, words, memory):
+    clips = []
     for word in words:
         if word in memory:
             choices = memory[word]
@@ -20,9 +18,9 @@ def main(args):
             print "| Cound not find %s" % word
             continue
         choice = find(choices)
-        output.append(choice)
-    f = open(args.output, 'w')
-    f.write(json.dumps(output))
+        clips.append(choice)
+    f = open(output, 'w')
+    f.write(json.dumps(clips))
     f.close()
 
 if __name__=='__main__':
@@ -33,4 +31,7 @@ if __name__=='__main__':
     parser.add_argument('--output', type=str, default='data/obama/gen/call_me_maybe.txt')
     parser.add_argument('--verbose', action='store_true', default=False)
     args = parser.parse_args()
-    main(args)
+
+    words = utils.parse_words(utils.read_file(args.lyrics))
+    memory = json.load(open(args.wordmap))
+    main(args.output, words, memory)
