@@ -9,7 +9,7 @@ def find(choices):
             curr = choice
     return curr
 
-def main(output, words, memory):
+def naive_words(output, words, memory):
     clips = []
     for word in words:
         if word in memory:
@@ -34,4 +34,4 @@ if __name__=='__main__':
 
     words = utils.parse_words(utils.read_file(args.lyrics))
     memory = json.load(open(args.wordmap))
-    main(args.output, words, memory)
+    naive_words(args.output, words, memory)

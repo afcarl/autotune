@@ -9,7 +9,7 @@ def find(choices):
             curr = choice
     return curr
 
-def main(output, phones, memory, verbose=False):
+def naive_phones(output, phones, memory, verbose=False):
     clips = []
     for progress, phone in enumerate(phones):
         if verbose and progress % 100 == 0:
@@ -42,6 +42,6 @@ if __name__=='__main__':
     if args.verbose:
         print "| Done parsing lyrics. %d phones found." % len(phones)
     memory = json.load(open(args.phonemap))
-    main(args.output, phones, memory, verbose=args.verbose)
+    naive_phones(args.output, phones, memory, verbose=args.verbose)
 
 
