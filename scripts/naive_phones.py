@@ -43,5 +43,3 @@ if __name__=='__main__':
         print "| Done parsing lyrics. %d phones found." % len(phones)
     memory = json.load(open(args.phonemap))
     naive_phones(args.output, phones, memory, verbose=args.verbose)
-
-

@@ -56,7 +56,7 @@ def generate():
     else:
         phonetics = Phonetics(word2phone)
         phones = phonetics.parse_phones(lines)
-        memory = json.load(open(os.path.join(phonemap_dir, 'phonemap_' + str(ngram) + '.json')))
+        memory = json.load(open(os.path.join(phonemap_dir, 'phonemap_1.json')))
         naive_phones.naive_phones(clips_file, phones, memory, verbose=True)
 
     # Generate the video
