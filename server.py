@@ -1,7 +1,8 @@
 from flask import Flask, request, render_template
-from scripts.viterbi_phones import Viterbi
+from scripts import viterbi_phones, viterbi_words, naive_words, naive_phones
 from scripts.utils import Phonetics
 from scripts.cut_and_paste import cut_and_paste
+from scripts import utils
 
 import argparse
 import json
@@ -18,8 +19,8 @@ def index():
 def generate():
     # Global variables
     clips_file = 'data/obama/gen/tmp.txt'
-    ngram = 2
     phonemap_dir = 'data/obama/gen'
+    wordmap = 'data/obama/gen/wordmap.json'
     word2phone = 'data/word2phones.json'
     videos = 'data/obama/lowres_videos'
     tmp = 'data/obama/tmp'
@@ -29,14 +30,36 @@ def generate():
     subprocess.call('rm ' + final_video, shell=True)
     subprocess.call('rm ' + clips_file, shell=True)
 
-    # Create the video
-    script = request.data
+    # Parse arguments
+    data = json.loads(request.data)
+    script = data['script']
+    ngram = data['ngram']
+    algorithm = data['algorithm']
     lines = script.split('.')
-    phonetics = Phonetics(word2phone)
-    phones = phonetics.parse_compound_phones(lines, ngram)
-    memory = json.load(open(os.path.join(phonemap_dir, 'phonemap_' + str(ngram) + '.json')))
-    viterbi = Viterbi(clips_file, phones, memory, transition_penalty=-100, verbose=True)
-    viterbi.run()
+
+    # Create the video script
+    if algorithm == 'dynamic' and ngram == 'words':
+        words = utils.parse_words(lines)
+        memory = json.load(open(wordmap))
+        algorithm = viterbi_words.Viterbi(clips_file, words, memory, transition_penalty=-100, verbose=True)
+        algorithm.run()
+    elif algorithm == 'dynamic':
+        phonetics = Phonetics(word2phone)
+        phones = phonetics.parse_compound_phones(lines, int(ngram))
+        memory = json.load(open(os.path.join(phonemap_dir, 'phonemap_' + str(ngram) + '.json')))
+        algorithm = viterbi_phones.Viterbi(clips_file, phones, memory, transition_penalty=-100, verbose=True)
+        algorithm.run()
+    elif algorithm == 'naive' and ngram == 'words':
+        words = utils.parse_words(lines)
+        memory = json.load(open(wordmap))
+        naive_words.naive_words(clips_file, words, memory)
+    else:
+        phonetics = Phonetics(word2phone)
+        phones = phonetics.parse_phones(lines)
+        memory = json.load(open(os.path.join(phonemap_dir, 'phonemap_' + str(ngram) + '.json')))
+        naive_phones.naive_phones(clips_file, phones, memory, verbose=True)
+
+    # Generate the video
     cut_and_paste(final_video, clips_file, videos, tmp)
     return 'ok'
 

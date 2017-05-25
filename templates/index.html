@@ -2,11 +2,16 @@
 <head>
     <title>Text to Video</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <style>
+        div {
+            margin-top: 10px;
+        }
+    </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 </head>
-<body>
+<body align="center">
     <div class='container'>
-        <h2>Input text and press generate</h2>
+        <h2>Type in text and press generate to generate a video of Obama speaking</h2>
         <div>
             <video id="video" controls width="700">
                 <source id="mp4" type="video/mp4" />
@@ -16,6 +21,33 @@
             <textarea id="script" rows=5 cols=50></textarea>
         </div>
         <div>
+            <label>Algorithm: </label>
+            <label class="radio-inline">
+              <input type="radio" name="algorithms" id="inlineRadio2" value="naive"> naive
+            </label>
+            <label class="radio-inline">
+              <input type="radio" name="algorithms" id="inlineRadio2" value="dynamic" checked="checked"> dynamic
+            </label>
+        </div>
+        <div>
+            <label>Phoneme Ngram: </label>
+            <label class="radio-inline">
+              <input type="radio" name="ngrams" id="inlineRadio2" value="2" checked="checked"> 2
+            </label>
+            <label class="radio-inline">
+              <input type="radio" name="ngrams" id="inlineRadio3" value="3"> 3
+            </label>
+            <label class="radio-inline">
+              <input type="radio" name="ngrams" id="inlineRadio4" value="4"> 4
+            </label>
+            <label class="radio-inline">
+              <input type="radio" name="ngrams" id="inlineRadio5" value="4"> 5
+            </label>
+            <label class="radio-inline">
+              <input type="radio" name="ngrams" id="inlineRadio1" value="words"> words
+            </label>
+        </div>
+        <div>
             <button onclick="generate()" class="btn btn-primary" name="generate">Generate</button>
         </div>
         <div id="message"></div>
@@ -23,17 +55,18 @@
     <script>
         function generate() {
             var script = $('#script').val();
+            var algorithm = $('input[name="algorithms"]:checked').val();
+            var ngram = $('input[name="ngrams"]:checked').val();
             $('#message').text('Loading...');
             $.ajax({
                 url: '/generate',
-                data: script,
+                data: JSON.stringify({script: script, ngram: ngram, algorithm: algorithm}),
                 method: 'POST',
                 contentType: 'application/json;charset=UTF-8',
                 success: function() {
                     var d = new Date(); 
                     $('#message').empty();
                     $('#video').attr('src', '/static/gen/tmp.mp4?data=' + d.getTime());
-                    $('#video').load();
                 }
             });
         }
