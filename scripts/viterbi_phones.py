@@ -34,37 +34,55 @@ class Viterbi:
         for progress, phone in enumerate(self.phones):
             if self.verbose and progress % 100 == 0:
                 print "| Calculating unary values: %d / %d" % (progress, len(self.phones))
-            elems = []
+            elems = {}
             for phone_neighbor in self.phone_similarities.get_compound_neighbors(phone):
                 if phone_neighbor not in self.memory:
                     continue
                 for elem in self.memory[phone_neighbor]:
-                    node = Node(phone, self.unary(phone, phone_neighbor), elem['filename'], elem['starttime'], elem['duration'], elem['prevstart'])
-                    elems.append(node)
+                    node = Node(phone, self.unary(phone, phone_neighbor), elem['filename'], \
+                                elem['starttime'], elem['duration'], elem['prevstart'], \
+                                elem['prevphone'])
+                    if node.filename not in elems:
+                        elems[node.filename] = []
+                    elems[node.filename].append(node)
             if len(elems) > 0:
                 self.timesteps.append(elems)
                 output_phones.append(phone)
 
         # calculate best path
+        currbest = None
+        currbestvalue = -1000000
         for timestep in range(len(self.timesteps)):
-            print "| Calculating timestep %d / %d, %d choices for phone: %s" % (timestep, len(self.timesteps), len(self.timesteps[timestep]), output_phones[timestep])
-            for node in self.timesteps[timestep]:
-                if timestep == 0:
-                    node.value = node.unary
-                    continue
-                for prev in self.timesteps[timestep-1]:
-                    value = prev.value + self.binary(prev, node)
-                    if node.prev is None or node.value is None or value > node.value:
-                        node.prev = prev
-                        node.value = value
+            prevbest = currbest
+            currbest = None
+            currbestvalue = -1000000
+            print "| Calculating timestep %d / %d, %d choices for phone: %s" % (timestep, \
+                    len(self.timesteps), len(self.timesteps[timestep]), output_phones[timestep])
+            for filename in self.timesteps[timestep]:
+                for node in self.timesteps[timestep][filename]:
+                    if timestep == 0:
+                        node.value = node.unary
+                    elif node.prevphone != output_phones[timestep] or node.filename not in self.timesteps[timestep-1]:
+                        node.prev = prevbest
+                        node.value = node.unary + node.prev.value + self.binary(node.prev, node)
+                    else:
+                        for prev in self.timesteps[timestep-1][node.filename]:
+                            value = node.unary + prev.value + self.binary(prev, node)
+                            if node.prev is None or node.value is None or value > node.value:
+                                node.prev = prev
+                                node.value = value
+                    if currbest is None or node.value > currbestvalue:
+                        currbest = node
+                        currbestvalue = node.value
 
         # Get the best sequence
         last = None
-        for node in self.timesteps[-1]:
-            if last is None:
-                last = node
-            elif last.value < node.value:
-                last = node
+        for filename in self.timesteps[-1]:
+            for node in self.timesteps[-1][filename]:
+                if last is None:
+                    last = node
+                elif last.value < node.value:
+                    last = node
         sequence = []
         duration_offset = 0
         while last is not None:

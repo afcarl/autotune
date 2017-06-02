@@ -8,13 +8,14 @@ class Node:
     Generic class used in the viterbi algorithm to dynamically find the maximum scoring
     sequence of video sequences where each sequence is represented as a Node object.
     """
-    def __init__(self, name, unary, filename, start, duration, prevstart):
+    def __init__(self, name, unary, filename, start, duration, prevstart, prevphone):
         self.name = name
         self.unary = unary
         self.filename = filename
         self.start = start
         self.duration = duration
         self.prevstart = prevstart
+        self.prevphone = prevphone
         self.prev = None
 
     def setPrev(self, node):
@@ -190,6 +191,7 @@ def collect_phones(folder, N, verbose=False):
         startlist = []
         durationlist = []
         prevstart = None
+        prevphone = None
 
         # Iterate over data
         for w in alignment['words']:
@@ -205,10 +207,12 @@ def collect_phones(folder, N, verbose=False):
                     compound_phone = '_'.join(phonelist[-N:])
                     if len(startlist) >= 2*N:
                         prevstart = startlist[-2*N]
+                        prevphone = '_'.join(phonelist[-2*N:N])
                     elem = {'filename': file.replace('.txt', ''),
                             'starttime': startlist[-N],
                             'duration': sum(durationlist[-N:]),
-                            'prevstart': prevstart}
+                            'prevstart': prevstart,
+                            'prevphone': prevphone}
                     if compound_phone not in phonemap:
                         phonemap[compound_phone] = []
                     phonemap[compound_phone].append(elem)
