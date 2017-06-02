@@ -1,11 +1,12 @@
 from flask import Flask, request, render_template
 from scripts import viterbi_phones, viterbi_words, naive_words, naive_phones
-from scripts.utils import Phonetics
+from scripts.utils import Phonetics, PhoneSimilarity
 from scripts.cut_and_paste import cut_and_paste
 from scripts import utils
 
 import argparse
 import json
+import logging
 import os
 import subprocess
 
@@ -22,6 +23,7 @@ def generate():
     phonemap_dir = 'data/obama/gen'
     wordmap = 'data/obama/gen/wordmap.json'
     word2phone = 'data/word2phones.json'
+    phone_similarities = 'data/phone_similarities.json'
     videos = 'data/obama/lowres_videos'
     tmp = 'data/obama/tmp'
     final_video = 'data/obama/gen/tmp.mp4'
@@ -33,6 +35,7 @@ def generate():
     # Parse arguments
     data = json.loads(request.data)
     script = data['script']
+    logging.info(script)
     ngram = data['ngram']
     algorithm = data['algorithm']
     lines = script.split('.')
@@ -45,9 +48,10 @@ def generate():
         algorithm.run()
     elif algorithm == 'dynamic':
         phonetics = Phonetics(word2phone)
+        phonesims = PhoneSimilarity(phone_similarities)
         phones = phonetics.parse_compound_phones(lines, int(ngram))
         memory = json.load(open(os.path.join(phonemap_dir, 'phonemap_' + str(ngram) + '.json')))
-        algorithm = viterbi_phones.Viterbi(clips_file, phones, memory, transition_penalty=-100, verbose=True)
+        algorithm = viterbi_phones.Viterbi(clips_file, phones, memory, phonesims, transition_penalty=-100, verbose=True)
         algorithm.run()
     elif algorithm == 'naive' and ngram == 'words':
         words = utils.parse_words(lines)
@@ -64,7 +68,14 @@ def generate():
     return 'ok'
 
 if __name__ == '__main__':
+    # Parse args
     parser = argparse.ArgumentParser(description="")
     parser.add_argument("--port", type=int, default=5000)
+    parser.add_argument("--logfile", type=str, default='data/obama/gen/server.log')
     args = parser.parse_args()
+
+    # Setup logging
+    logging.basicConfig(filename=args.logfile, level=logging.INFO)
+
+    # Start server
     app.run(host='0.0.0.0', port=args.port)

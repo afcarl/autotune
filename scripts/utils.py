@@ -4,6 +4,10 @@ import os
 
 
 class Node:
+    """
+    Generic class used in the viterbi algorithm to dynamically find the maximum scoring
+    sequence of video sequences where each sequence is represented as a Node object.
+    """
     def __init__(self, name, unary, filename, start, duration, prevstart):
         self.name = name
         self.unary = unary
@@ -19,16 +23,26 @@ class Node:
     def copy(self):
         return Node(self.name, self.unary,
                     self.filename, self.start,
-                    self.duration)
+                    self.duration, self.prevstart)
+
+    def __str__(self):
+        prevstart = -1
+        if self.prevstart is not None:
+            prevstart = self.prevstart
+        return "Node<name: %s, unary: %d, file: %s, start: %2.2f, duration: %2.2f, prev: %2.2f>" \
+                % (self.name, self.unary, self.filename, self.start, self.duration, prevstart)
+
 
 def read_file(f):
     """
+    Simply reads a file.
     f - raw textfile with words that need to be parsed
     """
     return open(f).readlines()
 
 def parse_words(script):
     """
+    Parses a str into its constinuent words.
     script - list of strings in a script
     """
     regex = re.compile('[^a-zA-Z\']')
@@ -42,6 +56,10 @@ def parse_words(script):
 
 
 class Phonetics:
+    """
+    This class is responsible for converting words into phones. It also parses scripts into
+    phones of varying n-grams.
+    """
     def __init__(self, word2phone_file):
         """
         word2phone_file - string of filename of json map from word to list of phones
@@ -77,6 +95,53 @@ class Phonetics:
             output.append('_'.join(phones[i:i+ngram]))
             i += ngram
         return output
+
+
+class PhoneSimilarity:
+    """
+    This class is reponsible for handling similarity between phones and suggesting similar
+    neighbors for phones and compound phones
+    """
+    def __init__(self, phone_similarity_file):
+        """
+        phone_similarity_file - string of filename of json map from word to list of phones
+        """
+        data = json.load(open(phone_similarity_file))
+        self.phones = data['phones']
+        self.similarities = data['similarities']
+        self.neighbors = data['neighbors']
+
+    def get_neighbors(self, phone):
+        return self.neighbors[phone]
+
+    def get_similarity(self, p1, p2):
+        i1 = self.phones.index(p1)
+        i2 = self.phones.index(p2)
+        return self.similarities[i1][i2]
+
+    def get_compound_neighbors(self, phone):
+        phones = phone.split('_')
+        neighbors = []
+        for p in phones:
+            neighbors.append(self.neighbors[p])
+        output = neighbors[0]
+        if len(neighbors) > 1:
+            for i in range(1, len(neighbors)):
+                tmp = []
+                for prefix in output:
+                    for suffix in neighbors[i]:
+                        tmp.append(prefix+'_'+suffix)
+                output = tmp
+        return output
+
+    def get_compound_similarity(self, p1, p2):
+        p1s = p1.split('_')
+        p2s = p2.split('_')
+        assert(len(p1s) == len(p2s))
+        score = 0.0
+        for p1, p2 in zip(p1s, p2s):
+            score += self.get_similarity(p1, p2)
+        return score
 
 
 def collect_words(folder, verbose=False):
