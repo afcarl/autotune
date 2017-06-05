@@ -23,6 +23,8 @@ def get_urls(filename):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Download a list of youtube videos')
+    parser.add_argument('--url', type=str, default=None, \
+        help="Use this command only when you want to download a single video")
     parser.add_argument('--urls', type=str, default='data/urls.txt')
     parser.add_argument('--output-dir', type=str, default='data/obama/videos')
 
@@ -38,5 +40,8 @@ if __name__=='__main__':
     parser.add_argument('--subtitles', action='store_true', default=False)
     args = parser.parse_args()
 
-    names = get_urls(args.urls)
+    if args.url is not None and len(args.url) > 0:
+        names = [args.url.replace('https://www.youtube.com/watch?v=', '')]
+    else:
+        names = get_urls(args.urls)
     download_from_youtube(names, args)
