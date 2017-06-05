@@ -13,7 +13,7 @@ def main(args):
         name = elem['filename']
         start = str(elem['starttime'])
         duration = str(elem['duration'])
-        video_file = os.path.join(args.data, 'videos', name + '.mp4')
+        video_file = os.path.join(args.videos, name + '.mp4')
         clip = VideoFileClip(video_file).subclip(start, start+duration)
         clips.append(clip)
     final_clip = concatenate_videoclips(clips)
@@ -26,7 +26,7 @@ def main(args):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Download a list of youtube videos')
-    parser.add_argument('--data', type=str, default='data/obama')
+    parser.add_argument('--videos', type=str, default='data/obama/lowres_videos')
     parser.add_argument('--script', type=str, default='data/obama/gen/call_me_maybe.txt')
     parser.add_argument('--output', type=str, default='data/obama/gen/call_me_maybe.avi')
     args = parser.parse_args()
